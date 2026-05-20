@@ -26,12 +26,12 @@ Medium
 
 1. Open the project in Android Studio.
 2. Sync Gradle.
-3. Add your OpenWeatherMap API key in `local.properties`.
-4. Run the app using an emulator or Android device.
+3. Run the app using an emulator or Android device.
 
-## API key setup
+## Current status
 
-Add this line to `local.properties`:
+This version contains the initial application skeleton for Project Class 3.
 
-```properties
-OWM_API_KEY=your_api_key_here
+## Screenshots
+
+Screenshots will be added in future project stages.
