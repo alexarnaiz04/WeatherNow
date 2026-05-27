@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.example.weathernow.ui.detail.DetailScreen
 import com.example.weathernow.ui.favourites.FavouritesScreen
 import com.example.weathernow.ui.history.HistoryScreen
@@ -72,7 +73,9 @@ fun AppNavGraph() {
     Scaffold(
         bottomBar = {
             if (!showDetails) {
-                NavigationBar {
+                NavigationBar(
+                    tonalElevation = 12.dp
+                ) {
                     items.forEachIndexed { index, item ->
                         NavigationBarItem(
                             selected = selectedTab == index,

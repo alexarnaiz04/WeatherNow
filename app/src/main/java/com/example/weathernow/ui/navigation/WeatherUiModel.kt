@@ -7,5 +7,9 @@ data class WeatherUiModel(
     val condition: String,
     val humidity: String,
     val wind: String,
-    val feelsLike: String
+    val feelsLike: String,
+    val pressure: String = "1012 hPa",
+    val uvIndex: String = "Moderate",
+    val sunrise: String = "06:12",
+    val sunset: String = "20:45"
 )

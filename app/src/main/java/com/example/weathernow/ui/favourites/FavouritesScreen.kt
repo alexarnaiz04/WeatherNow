@@ -42,7 +42,7 @@ fun FavouritesScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         if (favourites.isEmpty()) {
-            Text("No favourite locations yet.")
+            EmptyFavouritesCard()
         } else {
             favourites.forEach { weather ->
                 FavouriteCityCard(
@@ -50,6 +50,30 @@ fun FavouritesScreen(
                     onClick = { onCityClick(weather) }
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun EmptyFavouritesCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Text(
+                text = "No favourite locations yet",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Add cities from the Home screen to keep them here."
+            )
         }
     }
 }
@@ -64,7 +88,7 @@ private fun FavouriteCityCard(
             .fillMaxWidth()
             .padding(bottom = 14.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(22.dp)
     ) {
         Column(
             modifier = Modifier.padding(18.dp),

@@ -38,7 +38,7 @@ fun HistoryScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         if (history.isEmpty()) {
-            Text("No recent searches.")
+            EmptyHistoryCard()
         } else {
             history.forEachIndexed { index, city ->
                 HistoryItem(
@@ -46,6 +46,30 @@ fun HistoryScreen(
                     position = index + 1
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun EmptyHistoryCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Text(
+                text = "No recent searches",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Search for a city to build your weather history."
+            )
         }
     }
 }
@@ -59,7 +83,7 @@ private fun HistoryItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 14.dp),
-        shape = RoundedCornerShape(18.dp)
+        shape = RoundedCornerShape(22.dp)
     ) {
         Column(
             modifier = Modifier.padding(18.dp)
