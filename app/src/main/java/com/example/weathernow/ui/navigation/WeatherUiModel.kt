@@ -15,7 +15,7 @@ data class WeatherUiModel(
 ) {
     fun temperatureText(useFahrenheit: Boolean): String {
         return if (useFahrenheit) {
-            "${celsiusToFahrenheit(temperatureCelsius)}°F"
+            "${temperatureCelsius * 9 / 5 + 32}°F"
         } else {
             "$temperatureCelsius°C"
         }
@@ -23,13 +23,9 @@ data class WeatherUiModel(
 
     fun feelsLikeText(useFahrenheit: Boolean): String {
         return if (useFahrenheit) {
-            "${celsiusToFahrenheit(feelsLikeCelsius)}°F"
+            "${feelsLikeCelsius * 9 / 5 + 32}°F"
         } else {
             "$feelsLikeCelsius°C"
         }
-    }
-
-    private fun celsiusToFahrenheit(value: Int): Int {
-        return ((value * 9.0 / 5.0) + 32).toInt()
     }
 }

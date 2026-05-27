@@ -24,15 +24,14 @@ import com.example.weathernow.ui.navigation.WeatherUiModel
 fun HistoryScreen(
     modifier: Modifier = Modifier,
     history: List<WeatherUiModel>,
+    useFahrenheit: Boolean,
     onCityClick: (WeatherUiModel) -> Unit
 ) {
-
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(20.dp)
     ) {
-
         Text(
             text = "Search history",
             fontSize = 30.sp,
@@ -42,19 +41,14 @@ fun HistoryScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         if (history.isEmpty()) {
-
             EmptyHistoryCard()
-
         } else {
-
             history.forEachIndexed { index, weather ->
-
                 HistoryItem(
                     weather = weather,
+                    useFahrenheit = useFahrenheit,
                     position = index + 1,
-                    onClick = {
-                        onCityClick(weather)
-                    }
+                    onClick = { onCityClick(weather) }
                 )
             }
         }
@@ -63,16 +57,13 @@ fun HistoryScreen(
 
 @Composable
 private fun EmptyHistoryCard() {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp)
     ) {
-
         Column(
             modifier = Modifier.padding(24.dp)
         ) {
-
             Text(
                 text = "No recent searches",
                 fontSize = 20.sp,
@@ -91,24 +82,20 @@ private fun EmptyHistoryCard() {
 @Composable
 private fun HistoryItem(
     weather: WeatherUiModel,
+    useFahrenheit: Boolean,
     position: Int,
     onClick: () -> Unit
 ) {
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 14.dp)
-            .clickable {
-                onClick()
-            },
+            .clickable { onClick() },
         shape = RoundedCornerShape(22.dp)
     ) {
-
         Column(
             modifier = Modifier.padding(18.dp)
         ) {
-
             Icon(
                 imageVector = Icons.Default.History,
                 contentDescription = null
@@ -122,13 +109,8 @@ private fun HistoryItem(
                 fontSize = 20.sp
             )
 
-            Text(
-                text = "${weather.country} · ${weather.temperatureCelsius} · ${weather.condition}"
-            )
-
-            Text(
-                text = "Recent search #$position"
-            )
+            Text(text = "${weather.country} · ${weather.temperatureText(useFahrenheit)} · ${weather.condition}")
+            Text(text = "Recent search #$position")
         }
     }
 }

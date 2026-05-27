@@ -25,6 +25,7 @@ import com.example.weathernow.ui.navigation.WeatherUiModel
 fun FavouritesScreen(
     modifier: Modifier = Modifier,
     favourites: List<WeatherUiModel>,
+    useFahrenheit: Boolean,
     onCityClick: (WeatherUiModel) -> Unit
 ) {
     Column(
@@ -32,7 +33,6 @@ fun FavouritesScreen(
             .fillMaxSize()
             .padding(20.dp)
     ) {
-
         Text(
             text = "Favourite locations",
             fontSize = 30.sp,
@@ -47,9 +47,8 @@ fun FavouritesScreen(
             favourites.forEach { weather ->
                 FavouriteCityCard(
                     weather = weather,
-                    onClick = {
-                        onCityClick(weather)
-                    }
+                    useFahrenheit = useFahrenheit,
+                    onClick = { onCityClick(weather) }
                 )
             }
         }
@@ -65,7 +64,6 @@ private fun EmptyFavouritesCard() {
         Column(
             modifier = Modifier.padding(24.dp)
         ) {
-
             Text(
                 text = "No favourite locations yet",
                 fontSize = 20.sp,
@@ -84,24 +82,20 @@ private fun EmptyFavouritesCard() {
 @Composable
 private fun FavouriteCityCard(
     weather: WeatherUiModel,
+    useFahrenheit: Boolean,
     onClick: () -> Unit
 ) {
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 14.dp)
-            .clickable {
-                onClick()
-            },
+            .clickable { onClick() },
         shape = RoundedCornerShape(22.dp)
     ) {
-
         Column(
             modifier = Modifier.padding(18.dp),
             horizontalAlignment = Alignment.Start
         ) {
-
             Icon(
                 imageVector = Icons.Default.Favorite,
                 contentDescription = null
@@ -116,10 +110,7 @@ private fun FavouriteCityCard(
             )
 
             Text(text = weather.country)
-
-            Text(
-                text = "${weather.temperatureCelsius} · ${weather.condition}"
-            )
+            Text(text = "${weather.temperatureText(useFahrenheit)} · ${weather.condition}")
         }
     }
 }

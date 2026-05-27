@@ -5,15 +5,14 @@ import com.example.weathernow.data.local.WeatherLocationEntity
 import com.example.weathernow.ui.navigation.WeatherUiModel
 
 fun WeatherUiModel.toFavouriteEntity(): WeatherLocationEntity {
-
     return WeatherLocationEntity(
         city = city,
         country = country,
-        temperature = temperatureCelsius.toString(),
+        temperatureCelsius = temperatureCelsius,
         condition = condition,
         humidity = humidity,
         wind = wind,
-        feelsLike = feelsLikeCelsius.toString(),
+        feelsLikeCelsius = feelsLikeCelsius,
         pressure = pressure,
         uvIndex = uvIndex,
         sunrise = sunrise,
@@ -22,15 +21,14 @@ fun WeatherUiModel.toFavouriteEntity(): WeatherLocationEntity {
 }
 
 fun WeatherLocationEntity.toUiModel(): WeatherUiModel {
-
     return WeatherUiModel(
         city = city,
         country = country,
-        temperatureCelsius = temperature.toInt(),
+        temperatureCelsius = temperatureCelsius,
         condition = condition,
         humidity = humidity,
         wind = wind,
-        feelsLikeCelsius = feelsLike.toInt(),
+        feelsLikeCelsius = feelsLikeCelsius,
         pressure = pressure,
         uvIndex = uvIndex,
         sunrise = sunrise,
@@ -39,15 +37,14 @@ fun WeatherLocationEntity.toUiModel(): WeatherUiModel {
 }
 
 fun WeatherUiModel.toHistoryEntity(): HistoryEntity {
-
     return HistoryEntity(
         city = city,
         country = country,
-        temperature = temperatureCelsius.toString(),
+        temperatureCelsius = temperatureCelsius,
         condition = condition,
         humidity = humidity,
         wind = wind,
-        feelsLike = feelsLikeCelsius.toString(),
+        feelsLikeCelsius = feelsLikeCelsius,
         pressure = pressure,
         uvIndex = uvIndex,
         sunrise = sunrise,
@@ -57,15 +54,14 @@ fun WeatherUiModel.toHistoryEntity(): HistoryEntity {
 }
 
 fun HistoryEntity.toUiModel(): WeatherUiModel {
-
     return WeatherUiModel(
         city = city,
         country = country,
-        temperatureCelsius = temperature.toInt(),
+        temperatureCelsius = temperatureCelsius,
         condition = condition,
         humidity = humidity,
         wind = wind,
-        feelsLikeCelsius = feelsLike.toInt(),
+        feelsLikeCelsius = feelsLikeCelsius,
         pressure = pressure,
         uvIndex = uvIndex,
         sunrise = sunrise,
