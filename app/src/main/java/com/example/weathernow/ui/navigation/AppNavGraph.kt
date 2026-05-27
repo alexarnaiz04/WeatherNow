@@ -13,23 +13,41 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.weathernow.data.local.WeatherDatabase
+import com.example.weathernow.data.mapper.toFavouriteEntity
+import com.example.weathernow.data.mapper.toHistoryEntity
+import com.example.weathernow.data.mapper.toUiModel
 import com.example.weathernow.ui.detail.DetailScreen
 import com.example.weathernow.ui.favourites.FavouritesScreen
 import com.example.weathernow.ui.history.HistoryScreen
 import com.example.weathernow.ui.home.HomeScreen
 import com.example.weathernow.ui.project.ProjectInfoScreen
 import com.example.weathernow.ui.search.SearchScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavGraph() {
+    val context = LocalContext.current
+    val database = remember { WeatherDatabase.getDatabase(context) }
+    val weatherDao = remember { database.weatherDao() }
+    val coroutineScope = rememberCoroutineScope()
+
+    val favouritesFromDatabase by weatherDao.getFavourites().collectAsState(initial = emptyList())
+    val historyFromDatabase by weatherDao.getHistory().collectAsState(initial = emptyList())
+
+    val favourites = favouritesFromDatabase.map { it.toUiModel() }
+    val history = historyFromDatabase.map { it.toUiModel() }
+
     var selectedTab by remember { mutableIntStateOf(0) }
     var showDetails by remember { mutableStateOf(false) }
 
@@ -38,27 +56,16 @@ fun AppNavGraph() {
             WeatherUiModel(
                 city = "Szczecin",
                 country = "Poland",
-                temperature = "18°C",
+                temperatureCelsius = 18,
                 condition = "Partly cloudy",
                 humidity = "64%",
                 wind = "12 km/h",
-                feelsLike = "17°C"
+                feelsLikeCelsius = 17,
+                pressure = "1012 hPa",
+                uvIndex = "Moderate",
+                sunrise = "06:12",
+                sunset = "20:45"
             )
-        )
-    }
-
-    val favourites = remember {
-        mutableStateListOf(
-            WeatherUiModel("Szczecin", "Poland", "18°C", "Partly cloudy", "64%", "12 km/h", "17°C"),
-            WeatherUiModel("Madrid", "Spain", "24°C", "Sunny", "40%", "8 km/h", "25°C")
-        )
-    }
-
-    val history = remember {
-        mutableStateListOf(
-            "Szczecin",
-            "Madrid",
-            "Berlin"
         )
     }
 
@@ -102,53 +109,78 @@ fun AppNavGraph() {
             DetailScreen(
                 modifier = Modifier.padding(paddingValues),
                 weather = currentWeather,
-                onBackClick = { showDetails = false }
+                onBackClick = {
+                    showDetails = false
+                }
             )
         } else {
             when (selectedTab) {
-                0 -> HomeScreen(
-                    modifier = Modifier.padding(paddingValues),
-                    weather = currentWeather,
-                    isFavourite = favourites.any { it.city == currentWeather.city },
-                    onFavouriteClick = {
-                        if (favourites.any { it.city == currentWeather.city }) {
-                            favourites.removeAll { it.city == currentWeather.city }
-                        } else {
-                            favourites.add(currentWeather)
+                0 -> {
+                    HomeScreen(
+                        modifier = Modifier.padding(paddingValues),
+                        weather = currentWeather,
+                        isFavourite = favourites.any { it.city == currentWeather.city },
+                        onFavouriteClick = {
+                            coroutineScope.launch {
+                                val alreadyFavourite = favourites.any {
+                                    it.city == currentWeather.city
+                                }
+
+                                if (alreadyFavourite) {
+                                    weatherDao.deleteFavourite(currentWeather.city)
+                                } else {
+                                    weatherDao.saveFavourite(currentWeather.toFavouriteEntity())
+                                }
+                            }
+                        },
+                        onDetailsClick = {
+                            showDetails = true
                         }
-                    },
-                    onDetailsClick = {
-                        showDetails = true
-                    }
-                )
+                    )
+                }
 
-                1 -> SearchScreen(
-                    modifier = Modifier.padding(paddingValues),
-                    onSearch = { selectedWeather ->
-                        currentWeather = selectedWeather
-                        history.remove(selectedWeather.city)
-                        history.add(0, selectedWeather.city)
-                        selectedTab = 0
-                    }
-                )
+                1 -> {
+                    SearchScreen(
+                        modifier = Modifier.padding(paddingValues),
+                        onSearch = { selectedWeather ->
+                            currentWeather = selectedWeather
 
-                2 -> FavouritesScreen(
-                    modifier = Modifier.padding(paddingValues),
-                    favourites = favourites,
-                    onCityClick = { selectedWeather ->
-                        currentWeather = selectedWeather
-                        selectedTab = 0
-                    }
-                )
+                            coroutineScope.launch {
+                                weatherDao.saveHistory(selectedWeather.toHistoryEntity())
+                            }
 
-                3 -> HistoryScreen(
-                    modifier = Modifier.padding(paddingValues),
-                    history = history
-                )
+                            selectedTab = 0
+                        }
+                    )
+                }
 
-                4 -> ProjectInfoScreen(
-                    modifier = Modifier.padding(paddingValues)
-                )
+                2 -> {
+                    FavouritesScreen(
+                        modifier = Modifier.padding(paddingValues),
+                        favourites = favourites,
+                        onCityClick = { selectedWeather ->
+                            currentWeather = selectedWeather
+                            selectedTab = 0
+                        }
+                    )
+                }
+
+                3 -> {
+                    HistoryScreen(
+                        modifier = Modifier.padding(paddingValues),
+                        history = history,
+                        onCityClick = { selectedWeather ->
+                            currentWeather = selectedWeather
+                            selectedTab = 0
+                        }
+                    )
+                }
+
+                4 -> {
+                    ProjectInfoScreen(
+                        modifier = Modifier.padding(paddingValues)
+                    )
+                }
             }
         }
     }

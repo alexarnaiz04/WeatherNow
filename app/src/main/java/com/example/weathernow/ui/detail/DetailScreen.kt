@@ -18,14 +18,14 @@ import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.DeviceThermostat
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -41,6 +41,7 @@ import com.example.weathernow.ui.navigation.getWeatherStyle
 fun DetailScreen(
     modifier: Modifier = Modifier,
     weather: WeatherUiModel,
+    useFahrenheit: Boolean,
     onBackClick: () -> Unit
 ) {
     val style = getWeatherStyle(weather.condition)
@@ -74,7 +75,7 @@ fun DetailScreen(
                 Text(
                     text = "Weather details",
                     fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.ExtraBold
                 )
             }
 
@@ -82,8 +83,7 @@ fun DetailScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                shape = RoundedCornerShape(28.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -104,9 +104,9 @@ fun DetailScreen(
                     )
 
                     Text(
-                        text = weather.temperature,
+                        text = weather.temperatureText(useFahrenheit),
                         fontSize = 56.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.ExtraBold
                     )
 
                     Text(
@@ -128,9 +128,51 @@ fun DetailScreen(
 
             MetricCard("Humidity", weather.humidity, Icons.Default.WaterDrop)
             MetricCard("Wind speed", weather.wind, Icons.Default.Air)
-            MetricCard("Feels like", weather.feelsLike, Icons.Default.DeviceThermostat)
+            MetricCard("Feels like", weather.feelsLikeText(useFahrenheit), Icons.Default.DeviceThermostat)
+            MetricCard("Pressure", weather.pressure, Icons.Default.Speed)
+            MetricCard("UV Index", weather.uvIndex, Icons.Default.WbSunny)
             MetricCard("Visibility", "10 km", Icons.Default.Visibility)
             MetricCard("Cloud coverage", "42%", Icons.Default.Cloud)
+
+            Spacer(modifier = Modifier.height(22.dp))
+
+            Text(
+                text = "Sun cycle",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text("Sunrise")
+                        Text(
+                            text = weather.sunrise,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Column {
+                        Text("Sunset")
+                        Text(
+                            text = weather.sunset,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(22.dp))
 

@@ -14,7 +14,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -25,7 +24,7 @@ import com.example.weathernow.ui.navigation.WeatherUiModel
 @Composable
 fun FavouritesScreen(
     modifier: Modifier = Modifier,
-    favourites: SnapshotStateList<WeatherUiModel>,
+    favourites: List<WeatherUiModel>,
     onCityClick: (WeatherUiModel) -> Unit
 ) {
     Column(
@@ -33,6 +32,7 @@ fun FavouritesScreen(
             .fillMaxSize()
             .padding(20.dp)
     ) {
+
         Text(
             text = "Favourite locations",
             fontSize = 30.sp,
@@ -47,7 +47,9 @@ fun FavouritesScreen(
             favourites.forEach { weather ->
                 FavouriteCityCard(
                     weather = weather,
-                    onClick = { onCityClick(weather) }
+                    onClick = {
+                        onCityClick(weather)
+                    }
                 )
             }
         }
@@ -63,6 +65,7 @@ private fun EmptyFavouritesCard() {
         Column(
             modifier = Modifier.padding(24.dp)
         ) {
+
             Text(
                 text = "No favourite locations yet",
                 fontSize = 20.sp,
@@ -83,17 +86,22 @@ private fun FavouriteCityCard(
     weather: WeatherUiModel,
     onClick: () -> Unit
 ) {
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 14.dp)
-            .clickable { onClick() },
+            .clickable {
+                onClick()
+            },
         shape = RoundedCornerShape(22.dp)
     ) {
+
         Column(
             modifier = Modifier.padding(18.dp),
             horizontalAlignment = Alignment.Start
         ) {
+
             Icon(
                 imageVector = Icons.Default.Favorite,
                 contentDescription = null
@@ -108,7 +116,10 @@ private fun FavouriteCityCard(
             )
 
             Text(text = weather.country)
-            Text(text = "${weather.temperature} · ${weather.condition}")
+
+            Text(
+                text = "${weather.temperatureCelsius} · ${weather.condition}"
+            )
         }
     }
 }

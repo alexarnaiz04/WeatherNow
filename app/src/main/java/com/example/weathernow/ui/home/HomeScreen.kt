@@ -22,9 +22,9 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -48,6 +48,7 @@ import com.example.weathernow.ui.navigation.getWeatherStyle
 fun HomeScreen(
     modifier: Modifier = Modifier,
     weather: WeatherUiModel,
+    useFahrenheit: Boolean,
     isFavourite: Boolean,
     onFavouriteClick: () -> Unit,
     onDetailsClick: () -> Unit
@@ -114,17 +115,12 @@ fun HomeScreen(
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                SuggestionChip(onClick = {}, label = { Text("Live weather") })
+                SuggestionChip(onClick = {}, label = { Text("Forecast") })
+                SuggestionChip(onClick = {}, label = { Text("Air quality") })
                 SuggestionChip(
                     onClick = {},
-                    label = { Text("Live weather") }
-                )
-                SuggestionChip(
-                    onClick = {},
-                    label = { Text("Forecast") }
-                )
-                SuggestionChip(
-                    onClick = {},
-                    label = { Text("Air quality") }
+                    label = { Text(if (useFahrenheit) "°F mode" else "°C mode") }
                 )
             }
 
@@ -150,7 +146,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = weather.temperature,
+                        text = weather.temperatureText(useFahrenheit),
                         fontSize = 70.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
@@ -164,7 +160,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "Feels like ${weather.feelsLike}",
+                        text = "Feels like ${weather.feelsLikeText(useFahrenheit)}",
                         fontSize = 16.sp
                     )
 
@@ -187,15 +183,19 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(22.dp))
 
+            WeatherAlert(weather)
+
+            Spacer(modifier = Modifier.height(22.dp))
+
             WeatherInfoGrid(weather)
 
             Spacer(modifier = Modifier.height(22.dp))
 
-            HourlyForecast()
+            HourlyForecast(useFahrenheit)
 
             Spacer(modifier = Modifier.height(22.dp))
 
-            WeeklyForecast()
+            WeeklyForecast(useFahrenheit)
 
             Spacer(modifier = Modifier.height(22.dp))
 
@@ -217,6 +217,53 @@ fun HomeScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+private fun WeatherAlert(weather: WeatherUiModel) {
+    val alertText = when {
+        weather.condition.contains("rain", ignoreCase = true) ->
+            "Rain expected today. Carry an umbrella."
+
+        weather.temperatureCelsius >= 25 ->
+            "Warm day. Stay hydrated and avoid strong sun exposure."
+
+        weather.wind.contains("18") ->
+            "Windy conditions. Be careful with outdoor activities."
+
+        else ->
+            "No severe weather alerts for this location."
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = null
+            )
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            Column {
+                Text(
+                    text = "Weather alert",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(text = alertText)
+            }
         }
     }
 }
@@ -313,7 +360,11 @@ private fun WeatherMiniCard(
 }
 
 @Composable
-private fun HourlyForecast() {
+private fun HourlyForecast(useFahrenheit: Boolean) {
+    fun t(celsius: Int): String {
+        return if (useFahrenheit) "${((celsius * 9.0 / 5.0) + 32).toInt()}°F" else "$celsius°C"
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -329,11 +380,11 @@ private fun HourlyForecast() {
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            HourCard("09:00", "15°C")
-            HourCard("12:00", "18°C")
-            HourCard("15:00", "20°C")
-            HourCard("18:00", "17°C")
-            HourCard("21:00", "14°C")
+            HourCard("09:00", t(15))
+            HourCard("12:00", t(18))
+            HourCard("15:00", t(20))
+            HourCard("18:00", t(17))
+            HourCard("21:00", t(14))
         }
     }
 }
@@ -366,7 +417,11 @@ private fun HourCard(
 }
 
 @Composable
-private fun WeeklyForecast() {
+private fun WeeklyForecast(useFahrenheit: Boolean) {
+    fun t(celsius: Int): String {
+        return if (useFahrenheit) "${((celsius * 9.0 / 5.0) + 32).toInt()}°F" else "$celsius°C"
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -378,11 +433,11 @@ private fun WeeklyForecast() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        ForecastRow("Monday", "18°C", "Cloudy")
-        ForecastRow("Tuesday", "21°C", "Sunny")
-        ForecastRow("Wednesday", "19°C", "Partly cloudy")
-        ForecastRow("Thursday", "17°C", "Rainy")
-        ForecastRow("Friday", "22°C", "Clear sky")
+        ForecastRow("Monday", t(18), "Cloudy")
+        ForecastRow("Tuesday", t(21), "Sunny")
+        ForecastRow("Wednesday", t(19), "Partly cloudy")
+        ForecastRow("Thursday", t(17), "Rainy")
+        ForecastRow("Friday", t(22), "Clear sky")
     }
 }
 
@@ -421,6 +476,9 @@ private fun WeatherRecommendation(weather: WeatherUiModel) {
         weather.condition.contains("sun", ignoreCase = true) ||
                 weather.condition.contains("clear", ignoreCase = true) ->
             "Good day for outdoor activities."
+
+        weather.temperatureCelsius <= 14 ->
+            "A jacket is recommended for today."
 
         else ->
             "Weather is stable. A light jacket may be useful."

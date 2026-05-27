@@ -2,6 +2,7 @@ package com.example.weathernow.ui.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,21 +36,13 @@ import com.example.weathernow.ui.navigation.WeatherUiModel
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
+    availableCities: List<WeatherUiModel>,
+    useFahrenheit: Boolean,
     onSearch: (WeatherUiModel) -> Unit
 ) {
     var city by remember { mutableStateOf("") }
 
-    val suggestions = listOf(
-        WeatherUiModel("Szczecin", "Poland", "18°C", "Partly cloudy", "64%", "12 km/h", "17°C"),
-        WeatherUiModel("Madrid", "Spain", "24°C", "Sunny", "40%", "8 km/h", "25°C"),
-        WeatherUiModel("London", "United Kingdom", "14°C", "Rainy", "78%", "16 km/h", "13°C"),
-        WeatherUiModel("Berlin", "Germany", "16°C", "Cloudy", "60%", "10 km/h", "15°C"),
-        WeatherUiModel("Paris", "France", "20°C", "Clear sky", "55%", "9 km/h", "21°C"),
-        WeatherUiModel("Rome", "Italy", "26°C", "Sunny", "38%", "7 km/h", "27°C"),
-        WeatherUiModel("Amsterdam", "Netherlands", "13°C", "Rainy", "82%", "18 km/h", "12°C")
-    )
-
-    val filteredSuggestions = suggestions.filter {
+    val filteredSuggestions = availableCities.filter {
         it.city.contains(city, ignoreCase = true)
     }
 
@@ -105,16 +98,16 @@ fun SearchScreen(
 
                 Button(
                     onClick = {
-                        val result = suggestions.firstOrNull {
+                        val result = availableCities.firstOrNull {
                             it.city.equals(city, ignoreCase = true)
                         } ?: WeatherUiModel(
                             city = if (city.isBlank()) "Unknown city" else city,
                             country = "Unknown",
-                            temperature = "21°C",
+                            temperatureCelsius = 21,
                             condition = "Estimated weather",
                             humidity = "50%",
                             wind = "10 km/h",
-                            feelsLike = "20°C"
+                            feelsLikeCelsius = 20
                         )
 
                         onSearch(result)
@@ -142,34 +135,12 @@ fun SearchScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        androidx.compose.foundation.layout.Row {
-            SuggestionChip(
-                onClick = {
-                    city = "Madrid"
-                    onSearch(suggestions[1])
-                },
-                label = { Text("Madrid") }
-            )
-
+        Row {
+            PopularChip("Madrid", availableCities, onSearch)
             Spacer(modifier = Modifier.padding(4.dp))
-
-            SuggestionChip(
-                onClick = {
-                    city = "London"
-                    onSearch(suggestions[2])
-                },
-                label = { Text("London") }
-            )
-
+            PopularChip("London", availableCities, onSearch)
             Spacer(modifier = Modifier.padding(4.dp))
-
-            SuggestionChip(
-                onClick = {
-                    city = "Paris"
-                    onSearch(suggestions[4])
-                },
-                label = { Text("Paris") }
-            )
+            PopularChip("Paris", availableCities, onSearch)
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -185,6 +156,7 @@ fun SearchScreen(
         filteredSuggestions.forEach { weather ->
             SearchResultCard(
                 weather = weather,
+                useFahrenheit = useFahrenheit,
                 onClick = { onSearch(weather) }
             )
         }
@@ -192,8 +164,23 @@ fun SearchScreen(
 }
 
 @Composable
+private fun PopularChip(
+    city: String,
+    availableCities: List<WeatherUiModel>,
+    onSearch: (WeatherUiModel) -> Unit
+) {
+    val weather = availableCities.first { it.city == city }
+
+    SuggestionChip(
+        onClick = { onSearch(weather) },
+        label = { Text(city) }
+    )
+}
+
+@Composable
 private fun SearchResultCard(
     weather: WeatherUiModel,
+    useFahrenheit: Boolean,
     onClick: () -> Unit
 ) {
     Card(
@@ -221,7 +208,7 @@ private fun SearchResultCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text(text = "${weather.temperature} · ${weather.condition}")
+            Text(text = "${weather.temperatureText(useFahrenheit)} · ${weather.condition}")
             Text(text = "Humidity: ${weather.humidity} · Wind: ${weather.wind}")
         }
     }
