@@ -1,8 +1,5 @@
 package com.example.weathernow.data.remote
 
-import com.example.weathernow.data.remote.dto.ForecastResponseDto
-import com.example.weathernow.data.remote.dto.WeatherResponseDto
-import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -10,24 +7,23 @@ interface WeatherApiService {
 
     @GET("weather")
     suspend fun getCurrentWeather(
-        @Query("q") cityName: String,
-        @Query("units") units: String = "metric",
-        @Query("appid") apiKey: String = "demo_key"
-    ): Response<WeatherResponseDto>
+        @Query("q") city: String,
+        @Query("appid") apiKey: String,
+        @Query("units") units: String = "metric"
+    ): WeatherResponse
 
     @GET("weather")
-    suspend fun getCurrentWeatherByCoords(
+    suspend fun getCurrentWeatherByCoordinates(
         @Query("lat") latitude: Double,
         @Query("lon") longitude: Double,
-        @Query("units") units: String = "metric",
-        @Query("appid") apiKey: String = "demo_key"
-    ): Response<WeatherResponseDto>
+        @Query("appid") apiKey: String,
+        @Query("units") units: String = "metric"
+    ): WeatherResponse
 
     @GET("forecast")
     suspend fun getForecast(
-        @Query("q") cityName: String,
-        @Query("units") units: String = "metric",
-        @Query("cnt") count: Int = 40,
-        @Query("appid") apiKey: String = "demo_key"
-    ): Response<ForecastResponseDto>
+        @Query("q") city: String,
+        @Query("appid") apiKey: String,
+        @Query("units") units: String = "metric"
+    ): ForecastResponse
 }

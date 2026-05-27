@@ -14,6 +14,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -26,8 +27,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.weathernow.data.local.WeatherDatabase
 import com.example.weathernow.data.mapper.toFavouriteEntity
+import com.example.weathernow.data.mapper.toForecastUiModels
 import com.example.weathernow.data.mapper.toHistoryEntity
 import com.example.weathernow.data.mapper.toUiModel
+import com.example.weathernow.data.remote.WeatherRemoteDataSource
+import com.example.weathernow.data.settings.SettingsDataStore
 import com.example.weathernow.ui.detail.DetailScreen
 import com.example.weathernow.ui.favourites.FavouritesScreen
 import com.example.weathernow.ui.history.HistoryScreen
@@ -40,19 +44,35 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppNavGraph() {
     val context = LocalContext.current
+
     val database = remember { WeatherDatabase.getDatabase(context) }
     val weatherDao = remember { database.weatherDao() }
+    val remoteDataSource = remember { WeatherRemoteDataSource() }
+    val settingsDataStore = remember { SettingsDataStore(context) }
+
     val coroutineScope = rememberCoroutineScope()
 
     val favouriteEntities by weatherDao.getFavourites().collectAsState(initial = emptyList())
     val historyEntities by weatherDao.getHistory().collectAsState(initial = emptyList())
+    val useFahrenheit by settingsDataStore.useFahrenheit.collectAsState(initial = false)
 
     val favourites = favouriteEntities.map { it.toUiModel() }
     val history = historyEntities.map { it.toUiModel() }
 
     var selectedTab by remember { mutableIntStateOf(0) }
     var showDetails by remember { mutableStateOf(false) }
-    var useFahrenheit by remember { mutableStateOf(false) }
+
+    var forecast by remember {
+        mutableStateOf<List<ForecastUiModel>>(emptyList())
+    }
+
+    var isForecastLoading by remember {
+        mutableStateOf(false)
+    }
+
+    var forecastError by remember {
+        mutableStateOf<String?>(null)
+    }
 
     val availableCities = remember {
         listOf(
@@ -68,6 +88,31 @@ fun AppNavGraph() {
 
     var currentWeather by remember {
         mutableStateOf(availableCities.first())
+    }
+
+    fun loadForecastForCity(city: String) {
+        coroutineScope.launch {
+            isForecastLoading = true
+            forecastError = null
+
+            try {
+                val response = remoteDataSource.getForecast(city)
+                forecast = response.toForecastUiModels()
+
+                if (forecast.isEmpty()) {
+                    forecastError = "Forecast data is empty for this city."
+                }
+            } catch (e: Exception) {
+                forecast = emptyList()
+                forecastError = "Forecast error: ${e.message}"
+            } finally {
+                isForecastLoading = false
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        loadForecastForCity(currentWeather.city)
     }
 
     val items = listOf(
@@ -120,6 +165,9 @@ fun AppNavGraph() {
                 0 -> HomeScreen(
                     modifier = Modifier.padding(paddingValues),
                     weather = currentWeather,
+                    forecast = forecast,
+                    isForecastLoading = isForecastLoading,
+                    forecastError = forecastError,
                     isFavourite = favourites.any { it.city == currentWeather.city },
                     useFahrenheit = useFahrenheit,
                     onFavouriteClick = {
@@ -151,6 +199,7 @@ fun AppNavGraph() {
                             weatherDao.saveHistory(selectedWeather.toHistoryEntity())
                         }
 
+                        loadForecastForCity(selectedWeather.city)
                         selectedTab = 0
                     }
                 )
@@ -161,6 +210,7 @@ fun AppNavGraph() {
                     useFahrenheit = useFahrenheit,
                     onCityClick = { selectedWeather ->
                         currentWeather = selectedWeather
+                        loadForecastForCity(selectedWeather.city)
                         selectedTab = 0
                     }
                 )
@@ -171,6 +221,7 @@ fun AppNavGraph() {
                     useFahrenheit = useFahrenheit,
                     onCityClick = { selectedWeather ->
                         currentWeather = selectedWeather
+                        loadForecastForCity(selectedWeather.city)
                         selectedTab = 0
                     }
                 )
@@ -183,7 +234,9 @@ fun AppNavGraph() {
                     modifier = Modifier.padding(paddingValues),
                     useFahrenheit = useFahrenheit,
                     onUnitChange = { value ->
-                        useFahrenheit = value
+                        coroutineScope.launch {
+                            settingsDataStore.saveUseFahrenheit(value)
+                        }
                     }
                 )
             }
