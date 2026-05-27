@@ -35,6 +35,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.compose.material:material-icons-extended")
 
     implementation("androidx.core:core-ktx:1.15.0")
 
