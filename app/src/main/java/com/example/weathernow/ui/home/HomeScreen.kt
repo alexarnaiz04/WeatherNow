@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.WaterDrop
@@ -69,46 +70,15 @@ fun HomeScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(22.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column {
-                    Text(
-                        text = "WeatherNow",
-                        fontSize = 34.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
+            HeaderSection(visualLabel = visuals.label)
 
-                    Text(
-                        text = "Real-time weather dashboard",
-                        fontSize = 15.sp,
-                        color = Color.White.copy(alpha = 0.78f)
-                    )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = Color.White.copy(alpha = 0.18f)
-                ) {
-                    Text(
-                        text = visuals.label,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(18.dp, RoundedCornerShape(34.dp)),
-                shape = RoundedCornerShape(34.dp)
+                    .shadow(20.dp, RoundedCornerShape(36.dp)),
+                shape = RoundedCornerShape(36.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp)
@@ -121,7 +91,7 @@ fun HomeScreen(
                         Column {
                             Text(
                                 text = weather.city,
-                                fontSize = 33.sp,
+                                fontSize = 34.sp,
                                 fontWeight = FontWeight.ExtraBold
                             )
 
@@ -134,13 +104,17 @@ fun HomeScreen(
 
                         FilledTonalIconButton(onClick = onFavouriteClick) {
                             Icon(
-                                imageVector = if (isFavourite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                imageVector = if (isFavourite) {
+                                    Icons.Default.Favorite
+                                } else {
+                                    Icons.Default.FavoriteBorder
+                                },
                                 contentDescription = null
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(28.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -150,20 +124,28 @@ fun HomeScreen(
                         Column {
                             Text(
                                 text = weather.temperatureText(useFahrenheit),
-                                fontSize = 64.sp,
+                                fontSize = 68.sp,
                                 fontWeight = FontWeight.Black
                             )
 
                             Text(
                                 text = weather.condition,
-                                fontSize = 21.sp,
+                                fontSize = 22.sp,
                                 fontWeight = FontWeight.SemiBold
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "Feels like ${weather.feelsLikeText(useFahrenheit)}",
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
                         Box(
                             modifier = Modifier
-                                .size(104.dp)
+                                .size(112.dp)
                                 .background(
                                     color = visuals.accent.copy(alpha = 0.18f),
                                     shape = CircleShape
@@ -172,7 +154,7 @@ fun HomeScreen(
                         ) {
                             Text(
                                 text = visuals.emoji,
-                                fontSize = 58.sp
+                                fontSize = 62.sp
                             )
                         }
                     }
@@ -183,25 +165,25 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        WeatherMiniCard(
+                        PremiumMetricCard(
                             modifier = Modifier.weight(1f),
                             title = "Humidity",
                             value = weather.humidity,
                             icon = Icons.Default.WaterDrop
                         )
 
-                        WeatherMiniCard(
+                        PremiumMetricCard(
                             modifier = Modifier.weight(1f),
                             title = "Wind",
                             value = weather.wind,
                             icon = Icons.Default.Air
                         )
 
-                        WeatherMiniCard(
+                        PremiumMetricCard(
                             modifier = Modifier.weight(1f),
-                            title = "Feels",
-                            value = weather.feelsLikeText(useFahrenheit),
-                            icon = Icons.Default.Thermostat
+                            title = "Pressure",
+                            value = weather.pressure,
+                            icon = Icons.Default.Speed
                         )
                     }
 
@@ -211,8 +193,8 @@ fun HomeScreen(
                         onClick = onDetailsClick,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(54.dp),
-                        shape = RoundedCornerShape(18.dp)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(20.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Visibility,
@@ -231,95 +213,16 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(22.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp)
-                ) {
-                    when {
-                        isForecastLoading -> {
-                            Text(
-                                text = "Next hours",
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                CircularProgressIndicator()
-
-                                Spacer(modifier = Modifier.padding(8.dp))
-
-                                Text(text = "Loading forecast...")
-                            }
-                        }
-
-                        forecastError != null -> {
-                            Text(
-                                text = "Next hours",
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-
-                            Spacer(modifier = Modifier.height(10.dp))
-
-                            Text(text = forecastError)
-                        }
-
-                        forecast.isNotEmpty() -> {
-                            ForecastSection(
-                                forecast = forecast,
-                                useFahrenheit = useFahrenheit
-                            )
-                        }
-
-                        else -> {
-                            Text(
-                                text = "Next hours",
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-
-                            Spacer(modifier = Modifier.height(10.dp))
-
-                            Text(text = "Search a city to load the forecast.")
-                        }
-                    }
-                }
-            }
+            ForecastPremiumCard(
+                forecast = forecast,
+                isForecastLoading = isForecastLoading,
+                forecastError = forecastError,
+                useFahrenheit = useFahrenheit
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp)
-                ) {
-                    Text(
-                        text = "Today at a glance",
-                        fontSize = 21.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        InfoText("Pressure", weather.pressure)
-                        InfoText("Sunrise", weather.sunrise)
-                        InfoText("Sunset", weather.sunset)
-                    }
-                }
-            }
+            TodayOverviewCard(weather = weather)
 
             Spacer(modifier = Modifier.height(90.dp))
         }
@@ -327,7 +230,152 @@ fun HomeScreen(
 }
 
 @Composable
-private fun WeatherMiniCard(
+private fun HeaderSection(
+    visualLabel: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Column {
+            Text(
+                text = "WeatherNow",
+                fontSize = 35.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+
+            Text(
+                text = "Premium real-time weather dashboard",
+                fontSize = 15.sp,
+                color = Color.White.copy(alpha = 0.78f)
+            )
+        }
+
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = Color.White.copy(alpha = 0.18f)
+        ) {
+            Text(
+                text = visualLabel,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+@Composable
+private fun ForecastPremiumCard(
+    forecast: List<ForecastUiModel>,
+    isForecastLoading: Boolean,
+    forecastError: String?,
+    useFahrenheit: Boolean
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(30.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            when {
+                isForecastLoading -> {
+                    Text(
+                        text = "Next hours",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator()
+
+                        Spacer(modifier = Modifier.padding(8.dp))
+
+                        Text(text = "Loading hourly forecast...")
+                    }
+                }
+
+                forecastError != null -> {
+                    Text(
+                        text = "Next hours",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = forecastError,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                forecast.isNotEmpty() -> {
+                    ForecastSection(
+                        forecast = forecast,
+                        useFahrenheit = useFahrenheit
+                    )
+                }
+
+                else -> {
+                    Text(
+                        text = "Next hours",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "Search a city to load forecast data.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TodayOverviewCard(
+    weather: WeatherUiModel
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(30.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Text(
+                text = "Today at a glance",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OverviewItem("Sunrise", weather.sunrise)
+                OverviewItem("Sunset", weather.sunset)
+                OverviewItem("UV Index", weather.uvIndex)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PremiumMetricCard(
     modifier: Modifier = Modifier,
     title: String,
     value: String,
@@ -335,15 +383,18 @@ private fun WeatherMiniCard(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(22.dp)
+        shape = RoundedCornerShape(24.dp)
     ) {
         Column(
-            modifier = Modifier.padding(13.dp),
+            modifier = Modifier.padding(14.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(imageVector = icon, contentDescription = null)
+            Icon(
+                imageVector = icon,
+                contentDescription = null
+            )
 
-            Spacer(modifier = Modifier.height(7.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = title,
@@ -361,7 +412,7 @@ private fun WeatherMiniCard(
 }
 
 @Composable
-private fun InfoText(
+private fun OverviewItem(
     title: String,
     value: String
 ) {

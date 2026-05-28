@@ -6,7 +6,6 @@ plugins {
 }
 
 val openWeatherApiKey = project.findProperty("OPEN_WEATHER_API_KEY") as? String ?: ""
-
 android {
     namespace = "com.example.weathernow"
     compileSdk = 35
@@ -18,8 +17,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "OWM_API_KEY", "\"$openWeatherApiKey\"")
-    }
+        buildConfigField("String", "OWM_API_KEY", "\"$openWeatherApiKey\"")    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

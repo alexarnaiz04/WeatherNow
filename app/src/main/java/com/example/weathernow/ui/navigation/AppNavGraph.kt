@@ -39,10 +39,28 @@ import com.example.weathernow.ui.home.HomeScreen
 import com.example.weathernow.ui.project.ProjectInfoScreen
 import com.example.weathernow.ui.search.SearchScreen
 import com.example.weathernow.ui.settings.SettingsScreen
+import com.example.weathernow.ui.splash.SplashScreen
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavGraph() {
+    var showSplash by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(1600)
+        showSplash = false
+    }
+
+    if (showSplash) {
+        SplashScreen()
+    } else {
+        WeatherNowContent()
+    }
+}
+
+@Composable
+private fun WeatherNowContent() {
     val context = LocalContext.current
 
     val database = remember { WeatherDatabase.getDatabase(context) }
@@ -165,16 +183,14 @@ fun AppNavGraph() {
                 0 -> HomeScreen(
                     modifier = Modifier.padding(paddingValues),
                     weather = currentWeather,
-                    forecast = forecast,
-                    isForecastLoading = isForecastLoading,
-                    forecastError = forecastError,
+                    forecast = emptyList(),
+                    isForecastLoading = false,
+                    forecastError = null,
                     isFavourite = favourites.any { it.city == currentWeather.city },
                     useFahrenheit = useFahrenheit,
                     onFavouriteClick = {
                         coroutineScope.launch {
-                            val alreadyFavourite = favourites.any {
-                                it.city == currentWeather.city
-                            }
+                            val alreadyFavourite = favourites.any { it.city == currentWeather.city }
 
                             if (alreadyFavourite) {
                                 weatherDao.deleteFavourite(currentWeather.city)
@@ -183,9 +199,7 @@ fun AppNavGraph() {
                             }
                         }
                     },
-                    onDetailsClick = {
-                        showDetails = true
-                    }
+                    onDetailsClick = { showDetails = true }
                 )
 
                 1 -> SearchScreen(
