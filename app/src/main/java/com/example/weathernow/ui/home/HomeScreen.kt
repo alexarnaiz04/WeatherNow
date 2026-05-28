@@ -54,6 +54,7 @@ fun HomeScreen(
     forecastError: String?,
     isFavourite: Boolean,
     useFahrenheit: Boolean,
+    showAdvancedDetails: Boolean,
     onFavouriteClick: () -> Unit,
     onDetailsClick: () -> Unit
 ) {
@@ -104,11 +105,7 @@ fun HomeScreen(
 
                         FilledTonalIconButton(onClick = onFavouriteClick) {
                             Icon(
-                                imageVector = if (isFavourite) {
-                                    Icons.Default.Favorite
-                                } else {
-                                    Icons.Default.FavoriteBorder
-                                },
+                                imageVector = if (isFavourite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                 contentDescription = null
                             )
                         }
@@ -134,13 +131,15 @@ fun HomeScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            if (showAdvancedDetails) {
+                                Spacer(modifier = Modifier.height(8.dp))
 
-                            Text(
-                                text = "Feels like ${weather.feelsLikeText(useFahrenheit)}",
-                                fontSize = 15.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                                Text(
+                                    text = "Feels like ${weather.feelsLikeText(useFahrenheit)}",
+                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
 
                         Box(
@@ -179,12 +178,14 @@ fun HomeScreen(
                             icon = Icons.Default.Air
                         )
 
-                        PremiumMetricCard(
-                            modifier = Modifier.weight(1f),
-                            title = "Pressure",
-                            value = weather.pressure,
-                            icon = Icons.Default.Speed
-                        )
+                        if (showAdvancedDetails) {
+                            PremiumMetricCard(
+                                modifier = Modifier.weight(1f),
+                                title = "Pressure",
+                                value = weather.pressure,
+                                icon = Icons.Default.Speed
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -220,9 +221,10 @@ fun HomeScreen(
                 useFahrenheit = useFahrenheit
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            TodayOverviewCard(weather = weather)
+            if (showAdvancedDetails) {
+                Spacer(modifier = Modifier.height(20.dp))
+                TodayOverviewCard(weather = weather)
+            }
 
             Spacer(modifier = Modifier.height(90.dp))
         }

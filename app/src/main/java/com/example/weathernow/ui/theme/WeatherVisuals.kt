@@ -15,16 +15,16 @@ fun getWeatherVisuals(condition: String): WeatherVisuals {
 
     return when {
         text.contains("rain") || text.contains("drizzle") -> WeatherVisuals(
-            emoji = "🌧",
+            emoji = "🌧️",
             label = "Rainy",
             background = Brush.verticalGradient(
                 listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
             ),
-            accent = Color(0xFF7DD3FC)
+            accent = Color(0xFF38BDF8)
         )
 
         text.contains("cloud") || text.contains("overcast") -> WeatherVisuals(
-            emoji = "☁",
+            emoji = "☁️",
             label = "Cloudy",
             background = Brush.verticalGradient(
                 listOf(Color(0xFF485563), Color(0xFF29323C))
@@ -33,16 +33,16 @@ fun getWeatherVisuals(condition: String): WeatherVisuals {
         )
 
         text.contains("clear") || text.contains("sun") -> WeatherVisuals(
-            emoji = "☀",
+            emoji = "☀️",
             label = "Sunny",
             background = Brush.verticalGradient(
-                listOf(Color(0xFF4568DC), Color(0xFFB06AB3))
+                listOf(Color(0xFFFFB75E), Color(0xFFED8F03))
             ),
             accent = Color(0xFFFBBF24)
         )
 
         text.contains("snow") -> WeatherVisuals(
-            emoji = "❄",
+            emoji = "❄️",
             label = "Snowy",
             background = Brush.verticalGradient(
                 listOf(Color(0xFF83A4D4), Color(0xFFB6FBFF))
@@ -51,7 +51,7 @@ fun getWeatherVisuals(condition: String): WeatherVisuals {
         )
 
         text.contains("storm") || text.contains("thunder") -> WeatherVisuals(
-            emoji = "⛈",
+            emoji = "⛈️",
             label = "Stormy",
             background = Brush.verticalGradient(
                 listOf(Color(0xFF232526), Color(0xFF414345))
@@ -60,7 +60,7 @@ fun getWeatherVisuals(condition: String): WeatherVisuals {
         )
 
         text.contains("mist") || text.contains("fog") || text.contains("haze") -> WeatherVisuals(
-            emoji = "🌫",
+            emoji = "🌫️",
             label = "Foggy",
             background = Brush.verticalGradient(
                 listOf(Color(0xFF606C88), Color(0xFF3F4C6B))
@@ -69,7 +69,7 @@ fun getWeatherVisuals(condition: String): WeatherVisuals {
         )
 
         else -> WeatherVisuals(
-            emoji = "🌤",
+            emoji = "🌤️",
             label = "Weather",
             background = Brush.verticalGradient(
                 listOf(Color(0xFF1E3C72), Color(0xFF2A5298))

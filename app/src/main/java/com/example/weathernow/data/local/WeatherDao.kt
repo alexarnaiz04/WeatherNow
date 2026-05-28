@@ -23,6 +23,9 @@ interface WeatherDao {
     @Upsert
     suspend fun saveHistory(weather: HistoryEntity)
 
+    @Query("DELETE FROM search_history WHERE city = :city")
+    suspend fun deleteHistoryItem(city: String)
+
     @Query("DELETE FROM search_history")
     suspend fun clearHistory()
 }
