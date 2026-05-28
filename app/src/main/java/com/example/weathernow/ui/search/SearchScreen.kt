@@ -54,13 +54,28 @@ fun SearchScreen(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-
     val remoteDataSource = remember { WeatherRemoteDataSource() }
     val locationProvider = remember { LocationProvider(context) }
 
     var city by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+
+    fun searchRealWeather(cityName: String) {
+        coroutineScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            try {
+                val response = remoteDataSource.searchWeather(cityName.trim())
+                onSearch(response.toUiModel())
+            } catch (e: Exception) {
+                errorMessage = "City not found or internet connection failed."
+            } finally {
+                isLoading = false
+            }
+        }
+    }
 
     fun loadWeatherByCurrentLocation() {
         coroutineScope.launch {
@@ -120,9 +135,7 @@ fun SearchScreen(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Text(
-            text = "Find weather by city name or by your current location."
-        )
+        Text(text = "Find weather by city name or by your current location.")
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -163,21 +176,8 @@ fun SearchScreen(
                     onClick = {
                         if (city.isBlank()) {
                             errorMessage = "Please enter a city name."
-                            return@Button
-                        }
-
-                        coroutineScope.launch {
-                            isLoading = true
-                            errorMessage = null
-
-                            try {
-                                val response = remoteDataSource.searchWeather(city.trim())
-                                onSearch(response.toUiModel())
-                            } catch (e: Exception) {
-                                errorMessage = "City not found or internet connection failed."
-                            } finally {
-                                isLoading = false
-                            }
+                        } else {
+                            searchRealWeather(city)
                         }
                     },
                     modifier = Modifier
@@ -221,9 +221,7 @@ fun SearchScreen(
                         imageVector = Icons.Default.MyLocation,
                         contentDescription = null
                     )
-
                     Spacer(modifier = Modifier.padding(4.dp))
-
                     Text(
                         text = "Use my current location",
                         fontWeight = FontWeight.Bold
@@ -248,11 +246,24 @@ fun SearchScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         Row {
-            PopularChip("Madrid", onCitySelected = { city = it })
+            PopularChip("Madrid", onCitySelected = {
+                city = it
+                searchRealWeather(it)
+            })
+
             Spacer(modifier = Modifier.padding(4.dp))
-            PopularChip("London", onCitySelected = { city = it })
+
+            PopularChip("London", onCitySelected = {
+                city = it
+                searchRealWeather(it)
+            })
+
             Spacer(modifier = Modifier.padding(4.dp))
-            PopularChip("Paris", onCitySelected = { city = it })
+
+            PopularChip("Paris", onCitySelected = {
+                city = it
+                searchRealWeather(it)
+            })
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -269,7 +280,10 @@ fun SearchScreen(
             SearchResultCard(
                 weather = weather,
                 useFahrenheit = useFahrenheit,
-                onClick = { onSearch(weather) }
+                onClick = {
+                    city = weather.city
+                    searchRealWeather(weather.city)
+                }
             )
         }
     }

@@ -6,6 +6,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class WeatherRemoteDataSource {
 
+    private val apiKey = BuildConfig.OWM_API_KEY.trim()
+
     private val api: WeatherApiService = Retrofit.Builder()
         .baseUrl("https://api.openweathermap.org/data/2.5/")
         .addConverterFactory(GsonConverterFactory.create())
@@ -13,9 +15,11 @@ class WeatherRemoteDataSource {
         .create(WeatherApiService::class.java)
 
     suspend fun searchWeather(city: String): WeatherResponse {
+        checkApiKey()
+
         return api.getCurrentWeather(
-            city = city,
-            apiKey = BuildConfig.OWM_API_KEY
+            city = city.trim(),
+            apiKey = apiKey
         )
     }
 
@@ -23,19 +27,27 @@ class WeatherRemoteDataSource {
         latitude: Double,
         longitude: Double
     ): WeatherResponse {
+        checkApiKey()
+
         return api.getCurrentWeatherByCoordinates(
             latitude = latitude,
             longitude = longitude,
-            apiKey = BuildConfig.OWM_API_KEY
+            apiKey = apiKey
         )
     }
 
-    suspend fun getForecast(
-        city: String
-    ): ForecastResponse {
+    suspend fun getForecast(city: String): ForecastResponse {
+        checkApiKey()
+
         return api.getForecast(
-            city = city,
-            apiKey = BuildConfig.OWM_API_KEY
+            city = city.trim(),
+            apiKey = apiKey
         )
+    }
+
+    private fun checkApiKey() {
+        if (apiKey.isBlank()) {
+            error("OpenWeather API key is empty. Check gradle.properties.")
+        }
     }
 }

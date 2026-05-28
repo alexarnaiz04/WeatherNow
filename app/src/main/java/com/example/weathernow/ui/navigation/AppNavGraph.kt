@@ -39,35 +39,15 @@ import com.example.weathernow.ui.home.HomeScreen
 import com.example.weathernow.ui.project.ProjectInfoScreen
 import com.example.weathernow.ui.search.SearchScreen
 import com.example.weathernow.ui.settings.SettingsScreen
-import com.example.weathernow.ui.splash.SplashScreen
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavGraph() {
-    var showSplash by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        delay(1600)
-        showSplash = false
-    }
-
-    if (showSplash) {
-        SplashScreen()
-    } else {
-        WeatherNowContent()
-    }
-}
-
-@Composable
-private fun WeatherNowContent() {
     val context = LocalContext.current
-
     val database = remember { WeatherDatabase.getDatabase(context) }
     val weatherDao = remember { database.weatherDao() }
     val remoteDataSource = remember { WeatherRemoteDataSource() }
     val settingsDataStore = remember { SettingsDataStore(context) }
-
     val coroutineScope = rememberCoroutineScope()
 
     val favouriteEntities by weatherDao.getFavourites().collectAsState(initial = emptyList())
@@ -80,17 +60,9 @@ private fun WeatherNowContent() {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showDetails by remember { mutableStateOf(false) }
 
-    var forecast by remember {
-        mutableStateOf<List<ForecastUiModel>>(emptyList())
-    }
-
-    var isForecastLoading by remember {
-        mutableStateOf(false)
-    }
-
-    var forecastError by remember {
-        mutableStateOf<String?>(null)
-    }
+    var forecast by remember { mutableStateOf<List<ForecastUiModel>>(emptyList()) }
+    var isForecastLoading by remember { mutableStateOf(false) }
+    var forecastError by remember { mutableStateOf<String?>(null) }
 
     val availableCities = remember {
         listOf(
@@ -104,9 +76,7 @@ private fun WeatherNowContent() {
         )
     }
 
-    var currentWeather by remember {
-        mutableStateOf(availableCities.first())
-    }
+    var currentWeather by remember { mutableStateOf(availableCities.first()) }
 
     fun loadForecastForCity(city: String) {
         coroutineScope.launch {
@@ -122,11 +92,23 @@ private fun WeatherNowContent() {
                 }
             } catch (e: Exception) {
                 forecast = emptyList()
-                forecastError = "Forecast error: ${e.message}"
+                forecastError = "Forecast error: ${e.message ?: "unknown error"}"
             } finally {
                 isForecastLoading = false
             }
         }
+    }
+
+    fun selectRealWeather(selectedWeather: WeatherUiModel) {
+        currentWeather = selectedWeather
+        showDetails = false
+        selectedTab = 0
+
+        coroutineScope.launch {
+            weatherDao.saveHistory(selectedWeather.toHistoryEntity())
+        }
+
+        loadForecastForCity(selectedWeather.city)
     }
 
     LaunchedEffect(Unit) {
@@ -168,7 +150,6 @@ private fun WeatherNowContent() {
             }
         }
     ) { paddingValues ->
-
         if (showDetails) {
             DetailScreen(
                 modifier = Modifier.padding(paddingValues),
@@ -183,14 +164,16 @@ private fun WeatherNowContent() {
                 0 -> HomeScreen(
                     modifier = Modifier.padding(paddingValues),
                     weather = currentWeather,
-                    forecast = emptyList(),
-                    isForecastLoading = false,
-                    forecastError = null,
+                    forecast = forecast,
+                    isForecastLoading = isForecastLoading,
+                    forecastError = forecastError,
                     isFavourite = favourites.any { it.city == currentWeather.city },
                     useFahrenheit = useFahrenheit,
                     onFavouriteClick = {
                         coroutineScope.launch {
-                            val alreadyFavourite = favourites.any { it.city == currentWeather.city }
+                            val alreadyFavourite = favourites.any {
+                                it.city == currentWeather.city
+                            }
 
                             if (alreadyFavourite) {
                                 weatherDao.deleteFavourite(currentWeather.city)
@@ -199,7 +182,9 @@ private fun WeatherNowContent() {
                             }
                         }
                     },
-                    onDetailsClick = { showDetails = true }
+                    onDetailsClick = {
+                        showDetails = true
+                    }
                 )
 
                 1 -> SearchScreen(
@@ -207,14 +192,7 @@ private fun WeatherNowContent() {
                     availableCities = availableCities,
                     useFahrenheit = useFahrenheit,
                     onSearch = { selectedWeather ->
-                        currentWeather = selectedWeather
-
-                        coroutineScope.launch {
-                            weatherDao.saveHistory(selectedWeather.toHistoryEntity())
-                        }
-
-                        loadForecastForCity(selectedWeather.city)
-                        selectedTab = 0
+                        selectRealWeather(selectedWeather)
                     }
                 )
 
@@ -223,9 +201,7 @@ private fun WeatherNowContent() {
                     favourites = favourites,
                     useFahrenheit = useFahrenheit,
                     onCityClick = { selectedWeather ->
-                        currentWeather = selectedWeather
-                        loadForecastForCity(selectedWeather.city)
-                        selectedTab = 0
+                        selectRealWeather(selectedWeather)
                     }
                 )
 
@@ -234,9 +210,7 @@ private fun WeatherNowContent() {
                     history = history,
                     useFahrenheit = useFahrenheit,
                     onCityClick = { selectedWeather ->
-                        currentWeather = selectedWeather
-                        loadForecastForCity(selectedWeather.city)
-                        selectedTab = 0
+                        selectRealWeather(selectedWeather)
                     }
                 )
 
