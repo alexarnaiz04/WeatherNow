@@ -1,5 +1,6 @@
 package com.example.weathernow.ui.navigation
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -68,19 +69,35 @@ fun AppNavGraph() {
     var isForecastLoading by remember { mutableStateOf(false) }
     var forecastError by remember { mutableStateOf<String?>(null) }
 
-    val availableCities = remember {
-        listOf(
-            WeatherUiModel("Szczecin", "Poland", 18, "Partly cloudy", "64%", "12 km/h", 17),
-            WeatherUiModel("Madrid", "Spain", 24, "Sunny", "40%", "8 km/h", 25),
-            WeatherUiModel("London", "United Kingdom", 14, "Rainy", "78%", "16 km/h", 13),
-            WeatherUiModel("Berlin", "Germany", 16, "Cloudy", "60%", "10 km/h", 15),
-            WeatherUiModel("Paris", "France", 20, "Clear sky", "55%", "9 km/h", 21),
-            WeatherUiModel("Rome", "Italy", 26, "Sunny", "38%", "7 km/h", 27),
-            WeatherUiModel("Amsterdam", "Netherlands", 13, "Rainy", "82%", "18 km/h", 12)
+    val defaultWeather = remember {
+        WeatherUiModel(
+            city = "Szczecin",
+            country = "Poland",
+            temperatureCelsius = 18,
+            condition = "Partly cloudy",
+            humidity = "64%",
+            wind = "12 km/h",
+            feelsLikeCelsius = 17,
+            pressure = "1013 hPa",
+            uvIndex = "Low",
+            sunrise = "06:00",
+            sunset = "20:00"
         )
     }
 
-    var currentWeather by remember { mutableStateOf(availableCities.first()) }
+    val availableCities = remember {
+        listOf(
+            defaultWeather,
+            WeatherUiModel("Madrid", "Spain", 24, "Sunny", "40%", "8 km/h", 25, "1016 hPa", "Moderate", "07:10", "21:25"),
+            WeatherUiModel("London", "United Kingdom", 14, "Rainy", "78%", "16 km/h", 13, "1008 hPa", "Low", "05:40", "20:45"),
+            WeatherUiModel("Berlin", "Germany", 16, "Cloudy", "60%", "10 km/h", 15, "1011 hPa", "Low", "05:55", "20:30"),
+            WeatherUiModel("Paris", "France", 20, "Clear sky", "55%", "9 km/h", 21, "1014 hPa", "Moderate", "06:15", "21:00"),
+            WeatherUiModel("Rome", "Italy", 26, "Sunny", "38%", "7 km/h", 27, "1017 hPa", "High", "06:25", "20:35"),
+            WeatherUiModel("Amsterdam", "Netherlands", 13, "Rainy", "82%", "18 km/h", 12, "1007 hPa", "Low", "05:50", "20:55")
+        )
+    }
+
+    var currentWeather by remember { mutableStateOf(defaultWeather) }
 
     fun loadForecastForCity(city: String) {
         coroutineScope.launch {
@@ -96,17 +113,16 @@ fun AppNavGraph() {
                 }
             } catch (e: Exception) {
                 forecast = emptyList()
-                forecastError = "Forecast error: ${e.message ?: "unknown error"}"
+                forecastError = "Forecast unavailable. Check your connection."
             } finally {
                 isForecastLoading = false
             }
         }
     }
 
-    fun loadRealWeatherAndOpenHome(
+    fun openWeatherFromCity(
         city: String,
-        saveInHistory: Boolean = true,
-        updateFavouriteIfNeeded: Boolean = false
+        saveInHistory: Boolean
     ) {
         coroutineScope.launch {
             try {
@@ -121,38 +137,27 @@ fun AppNavGraph() {
                     weatherDao.saveHistory(realWeather.toHistoryEntity())
                 }
 
-                if (updateFavouriteIfNeeded) {
-                    val isFavourite = favourites.any {
-                        it.city.equals(realWeather.city, ignoreCase = true)
-                    }
+                val isFavourite = favourites.any {
+                    it.city.equals(realWeather.city, ignoreCase = true)
+                }
 
-                    if (isFavourite) {
-                        weatherDao.saveFavourite(realWeather.toFavouriteEntity())
-                    }
+                if (isFavourite) {
+                    weatherDao.saveFavourite(realWeather.toFavouriteEntity())
                 }
 
                 loadForecastForCity(realWeather.city)
             } catch (e: Exception) {
-                val fallbackWeather = availableCities.firstOrNull {
-                    it.city.equals(city, ignoreCase = true)
-                }
-
-                if (fallbackWeather != null) {
-                    currentWeather = fallbackWeather
-                    showDetails = false
-                    selectedTab = 0
-                    loadForecastForCity(fallbackWeather.city)
-                }
+                forecastError = "Could not refresh weather. Showing last available data."
+                loadForecastForCity(city)
             }
         }
     }
 
     fun selectWeather(selectedWeather: WeatherUiModel) {
         if (autoRefreshWeather) {
-            loadRealWeatherAndOpenHome(
+            openWeatherFromCity(
                 city = selectedWeather.city,
-                saveInHistory = true,
-                updateFavouriteIfNeeded = true
+                saveInHistory = true
             )
         } else {
             currentWeather = selectedWeather
@@ -168,11 +173,7 @@ fun AppNavGraph() {
     }
 
     LaunchedEffect(Unit) {
-        loadRealWeatherAndOpenHome(
-            city = currentWeather.city,
-            saveInHistory = false,
-            updateFavouriteIfNeeded = false
-        )
+        loadForecastForCity(currentWeather.city)
     }
 
     val items = listOf(
@@ -210,116 +211,112 @@ fun AppNavGraph() {
             }
         }
     ) { paddingValues ->
-        if (showDetails) {
-            DetailScreen(
-                modifier = Modifier.padding(paddingValues),
-                weather = currentWeather,
-                useFahrenheit = useFahrenheit,
-                onBackClick = {
-                    showDetails = false
-                }
-            )
-        } else {
-            when (selectedTab) {
-                0 -> HomeScreen(
-                    modifier = Modifier.padding(paddingValues),
+        Box(
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            if (showDetails) {
+                DetailScreen(
                     weather = currentWeather,
-                    forecast = forecast,
-                    isForecastLoading = isForecastLoading,
-                    forecastError = forecastError,
-                    isFavourite = favourites.any {
-                        it.city.equals(currentWeather.city, ignoreCase = true)
-                    },
                     useFahrenheit = useFahrenheit,
-                    showAdvancedDetails = showAdvancedDetails,
-                    onFavouriteClick = {
-                        coroutineScope.launch {
-                            val alreadyFavourite = favourites.any {
-                                it.city.equals(currentWeather.city, ignoreCase = true)
+                    onBackClick = {
+                        showDetails = false
+                    }
+                )
+            } else {
+                when (selectedTab) {
+                    0 -> HomeScreen(
+                        weather = currentWeather,
+                        forecast = forecast,
+                        isForecastLoading = isForecastLoading,
+                        forecastError = forecastError,
+                        isFavourite = favourites.any {
+                            it.city.equals(currentWeather.city, ignoreCase = true)
+                        },
+                        useFahrenheit = useFahrenheit,
+                        showAdvancedDetails = showAdvancedDetails,
+                        onFavouriteClick = {
+                            coroutineScope.launch {
+                                val alreadyFavourite = favourites.any {
+                                    it.city.equals(currentWeather.city, ignoreCase = true)
+                                }
+
+                                if (alreadyFavourite) {
+                                    weatherDao.deleteFavourite(currentWeather.city)
+                                } else {
+                                    weatherDao.saveFavourite(currentWeather.toFavouriteEntity())
+                                }
                             }
+                        },
+                        onDetailsClick = {
+                            showDetails = true
+                        }
+                    )
 
-                            if (alreadyFavourite) {
-                                weatherDao.deleteFavourite(currentWeather.city)
-                            } else {
-                                weatherDao.saveFavourite(currentWeather.toFavouriteEntity())
+                    1 -> SearchScreen(
+                        availableCities = availableCities,
+                        useFahrenheit = useFahrenheit,
+                        onSearch = { selectedWeather ->
+                            selectWeather(selectedWeather)
+                        }
+                    )
+
+                    2 -> FavouritesScreen(
+                        favourites = favourites,
+                        useFahrenheit = useFahrenheit,
+                        compactCards = compactCards,
+                        onCityClick = { selectedWeather ->
+                            selectWeather(selectedWeather)
+                        }
+                    )
+
+                    3 -> HistoryScreen(
+                        history = history,
+                        useFahrenheit = useFahrenheit,
+                        onCityClick = { selectedWeather ->
+                            selectWeather(selectedWeather)
+                        },
+                        onDeleteItem = { selectedWeather ->
+                            coroutineScope.launch {
+                                weatherDao.deleteHistoryItem(selectedWeather.city)
+                            }
+                        },
+                        onClearHistory = {
+                            coroutineScope.launch {
+                                weatherDao.clearHistory()
                             }
                         }
-                    },
-                    onDetailsClick = {
-                        showDetails = true
-                    }
-                )
+                    )
 
-                1 -> SearchScreen(
-                    modifier = Modifier.padding(paddingValues),
-                    availableCities = availableCities,
-                    useFahrenheit = useFahrenheit,
-                    onSearch = { selectedWeather ->
-                        selectWeather(selectedWeather)
-                    }
-                )
+                    4 -> ProjectInfoScreen()
 
-                2 -> FavouritesScreen(
-                    modifier = Modifier.padding(paddingValues),
-                    favourites = favourites,
-                    useFahrenheit = useFahrenheit,
-                    compactCards = compactCards,
-                    onCityClick = { selectedWeather ->
-                        selectWeather(selectedWeather)
-                    }
-                )
-
-                3 -> HistoryScreen(
-                    modifier = Modifier.padding(paddingValues),
-                    history = history,
-                    useFahrenheit = useFahrenheit,
-                    onCityClick = { selectedWeather ->
-                        selectWeather(selectedWeather)
-                    },
-                    onDeleteItem = { selectedWeather ->
-                        coroutineScope.launch {
-                            weatherDao.deleteHistoryItem(selectedWeather.city)
+                    5 -> SettingsScreen(
+                        useFahrenheit = useFahrenheit,
+                        showAdvancedDetails = showAdvancedDetails,
+                        autoRefreshWeather = autoRefreshWeather,
+                        compactCards = compactCards,
+                        onUnitChange = { value ->
+                            coroutineScope.launch {
+                                settingsDataStore.saveUseFahrenheit(value)
+                            }
+                        },
+                        onShowAdvancedDetailsChange = { value ->
+                            coroutineScope.launch {
+                                settingsDataStore.saveShowAdvancedDetails(value)
+                            }
+                        },
+                        onAutoRefreshWeatherChange = { value ->
+                            coroutineScope.launch {
+                                settingsDataStore.saveAutoRefreshWeather(value)
+                            }
+                        },
+                        onCompactCardsChange = { value ->
+                            coroutineScope.launch {
+                                settingsDataStore.saveCompactCards(value)
+                            }
                         }
-                    },
-                    onClearHistory = {
-                        coroutineScope.launch {
-                            weatherDao.clearHistory()
-                        }
-                    }
-                )
-
-                4 -> ProjectInfoScreen(
-                    modifier = Modifier.padding(paddingValues)
-                )
-
-                5 -> SettingsScreen(
-                    modifier = Modifier.padding(paddingValues),
-                    useFahrenheit = useFahrenheit,
-                    showAdvancedDetails = showAdvancedDetails,
-                    autoRefreshWeather = autoRefreshWeather,
-                    compactCards = compactCards,
-                    onUnitChange = { value ->
-                        coroutineScope.launch {
-                            settingsDataStore.saveUseFahrenheit(value)
-                        }
-                    },
-                    onShowAdvancedDetailsChange = { value ->
-                        coroutineScope.launch {
-                            settingsDataStore.saveShowAdvancedDetails(value)
-                        }
-                    },
-                    onAutoRefreshWeatherChange = { value ->
-                        coroutineScope.launch {
-                            settingsDataStore.saveAutoRefreshWeather(value)
-                        }
-                    },
-                    onCompactCardsChange = { value ->
-                        coroutineScope.launch {
-                            settingsDataStore.saveCompactCards(value)
-                        }
-                    }
-                )
+                    )
+                }
             }
         }
     }
-}
+}b
