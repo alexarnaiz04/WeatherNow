@@ -1,6 +1,5 @@
 package com.example.weathernow.ui.settings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,9 +18,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.ViewCompact
 import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,27 +43,26 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
         Text(
             text = "Settings",
-            fontSize = 34.sp,
+            fontSize = 32.sp,
             fontWeight = FontWeight.ExtraBold
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Customize how WeatherNow looks and behaves."
+            text = "Customize how WeatherNow works and displays live weather data."
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         SettingSwitchCard(
             title = "Temperature unit",
-            subtitle = if (useFahrenheit) "Temperatures are shown in Fahrenheit." else "Temperatures are shown in Celsius.",
+            subtitle = if (useFahrenheit) "Using Fahrenheit" else "Using Celsius",
             checked = useFahrenheit,
             onCheckedChange = onUnitChange,
             icon = {
@@ -82,9 +78,9 @@ fun SettingsScreen(
         SettingSwitchCard(
             title = "Advanced details",
             subtitle = if (showAdvancedDetails) {
-                "Home shows pressure, sunrise and sunset."
+                "Humidity, wind, pressure and sunrise data enabled"
             } else {
-                "Home uses a cleaner simplified layout."
+                "Showing a cleaner simplified view"
             },
             checked = showAdvancedDetails,
             onCheckedChange = onShowAdvancedDetailsChange,
@@ -99,11 +95,11 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(14.dp))
 
         SettingSwitchCard(
-            title = "Auto refresh saved cities",
+            title = "Auto refresh weather",
             subtitle = if (autoRefreshWeather) {
-                "Favourites and history refresh with live OpenWeather data."
+                "Saved cities refresh from OpenWeather when opened"
             } else {
-                "Favourites and history open stored offline data."
+                "Saved cities keep their stored offline values"
             },
             checked = autoRefreshWeather,
             onCheckedChange = onAutoRefreshWeatherChange,
@@ -120,9 +116,9 @@ fun SettingsScreen(
         SettingSwitchCard(
             title = "Compact cards",
             subtitle = if (compactCards) {
-                "Lists use smaller cards with less detail."
+                "More compact lists in the app"
             } else {
-                "Lists use larger premium visual cards."
+                "Premium spacious cards enabled"
             },
             checked = compactCards,
             onCheckedChange = onCompactCardsChange,
@@ -134,14 +130,14 @@ fun SettingsScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(22.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        ElevatedCard(
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp)
+            shape = RoundedCornerShape(24.dp)
         ) {
             Column(
-                modifier = Modifier.padding(22.dp)
+                modifier = Modifier.padding(20.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
@@ -151,20 +147,18 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "Live weather enabled",
-                    fontSize = 21.sp,
+                    text = "Current configuration",
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "WeatherNow is connected to OpenWeather. Searches, favourites and history can load real-time weather data."
+                    text = "WeatherNow is connected to OpenWeather and uses live data for searches, favourites and history."
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(90.dp))
     }
 }
 
@@ -178,7 +172,7 @@ private fun SettingSwitchCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp)
+        shape = RoundedCornerShape(24.dp)
     ) {
         Row(
             modifier = Modifier
@@ -198,14 +192,11 @@ private fun SettingSwitchCard(
                 Column {
                     Text(
                         text = title,
-                        fontSize = 19.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
 
-                    Text(
-                        text = subtitle,
-                        fontSize = 14.sp
-                    )
+                    Text(text = subtitle)
                 }
             }
 

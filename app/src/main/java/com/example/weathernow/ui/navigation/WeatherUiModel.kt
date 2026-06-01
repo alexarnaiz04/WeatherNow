@@ -9,13 +9,13 @@ data class WeatherUiModel(
     val wind: String,
     val feelsLikeCelsius: Int,
     val pressure: String = "1012 hPa",
-    val uvIndex: String = "Moderate",
+    val uvIndex: String = "Not available",
     val sunrise: String = "06:12",
     val sunset: String = "20:45"
 ) {
     fun temperatureText(useFahrenheit: Boolean): String {
         return if (useFahrenheit) {
-            "${temperatureCelsius * 9 / 5 + 32}°F"
+            "${celsiusToFahrenheit(temperatureCelsius)}°F"
         } else {
             "$temperatureCelsius°C"
         }
@@ -23,9 +23,13 @@ data class WeatherUiModel(
 
     fun feelsLikeText(useFahrenheit: Boolean): String {
         return if (useFahrenheit) {
-            "${feelsLikeCelsius * 9 / 5 + 32}°F"
+            "${celsiusToFahrenheit(feelsLikeCelsius)}°F"
         } else {
             "$feelsLikeCelsius°C"
         }
+    }
+
+    private fun celsiusToFahrenheit(value: Int): Int {
+        return ((value * 9.0 / 5.0) + 32).toInt()
     }
 }

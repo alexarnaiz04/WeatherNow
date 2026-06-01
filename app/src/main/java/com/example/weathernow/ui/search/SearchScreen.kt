@@ -3,7 +3,7 @@ package com.example.weathernow.ui.search
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,14 +15,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SuggestionChip
@@ -116,40 +117,41 @@ fun SearchScreen(
         }
     }
 
+    val filteredSuggestions = availableCities.filter {
+        it.city.contains(city, ignoreCase = true)
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
         Text(
             text = "Search city",
-            fontSize = 34.sp,
+            fontSize = 32.sp,
             fontWeight = FontWeight.ExtraBold
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Text(
-            text = "Search any city and load real-time OpenWeather data instantly."
-        )
+        Text(text = "Find real-time weather by city name or your current location.")
 
-        Spacer(modifier = Modifier.height(22.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(32.dp)
+            shape = RoundedCornerShape(28.dp)
         ) {
             Column(
-                modifier = Modifier.padding(22.dp)
+                modifier = Modifier.padding(20.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.TravelExplore,
                     contentDescription = null
                 )
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = city,
@@ -165,8 +167,7 @@ fun SearchScreen(
                             contentDescription = null
                         )
                     },
-                    shape = RoundedCornerShape(20.dp),
-                    singleLine = true
+                    shape = RoundedCornerShape(18.dp)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -181,15 +182,15 @@ fun SearchScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(20.dp),
+                        .height(52.dp),
+                    shape = RoundedCornerShape(18.dp),
                     enabled = !isLoading
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator()
                     } else {
                         Text(
-                            text = "Search real weather",
+                            text = "Search weather",
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -212,8 +213,8 @@ fun SearchScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(20.dp),
+                        .height(52.dp),
+                    shape = RoundedCornerShape(18.dp),
                     enabled = !isLoading
                 ) {
                     Icon(
@@ -234,15 +235,15 @@ fun SearchScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(22.dp))
 
         Text(
-            text = "Quick search",
+            text = "Quick examples",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Row {
             PopularChip("Madrid") {
@@ -265,27 +266,25 @@ fun SearchScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        Row {
-            PopularChip("Szczecin") {
-                city = it
-                searchRealWeather(it)
-            }
+        Text(
+            text = "Saved suggestions",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold
+        )
 
-            Spacer(modifier = Modifier.padding(4.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-            PopularChip("Rome") {
-                city = it
-                searchRealWeather(it)
-            }
-
-            Spacer(modifier = Modifier.padding(4.dp))
-
-            PopularChip("Berlin") {
-                city = it
-                searchRealWeather(it)
-            }
+        filteredSuggestions.forEach { weather ->
+            SearchResultCard(
+                weather = weather,
+                useFahrenheit = useFahrenheit,
+                onClick = {
+                    city = weather.city
+                    searchRealWeather(weather.city)
+                }
+            )
         }
     }
 }
@@ -299,4 +298,41 @@ private fun PopularChip(
         onClick = { onCitySelected(city) },
         label = { Text(city) }
     )
+}
+
+@Composable
+private fun SearchResultCard(
+    weather: WeatherUiModel,
+    useFahrenheit: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 14.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.LocationCity,
+                contentDescription = null
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "${weather.city}, ${weather.country}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(text = "${weather.temperatureText(useFahrenheit)} · ${weather.condition}")
+            Text(text = "Humidity: ${weather.humidity} · Wind: ${weather.wind}")
+        }
+    }
 }

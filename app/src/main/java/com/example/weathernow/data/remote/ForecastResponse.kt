@@ -3,16 +3,12 @@ package com.example.weathernow.data.remote
 import com.google.gson.annotations.SerializedName
 
 data class ForecastResponse(
-    @SerializedName("list")
-    val items: List<ForecastItemResponse>
+    @SerializedName("list") val items: List<ForecastItemResponse>
 )
 
 data class ForecastItemResponse(
-    @SerializedName("dt_txt")
-    val dateText: String,
-
+    @SerializedName("dt_txt") val dateText: String,
     val main: ForecastMainResponse,
-
     val weather: List<ForecastWeatherResponse>
 )
 

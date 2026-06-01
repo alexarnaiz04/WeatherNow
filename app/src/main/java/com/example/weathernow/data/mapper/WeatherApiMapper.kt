@@ -5,6 +5,7 @@ import com.example.weathernow.ui.navigation.WeatherUiModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 fun WeatherResponse.toUiModel(): WeatherUiModel {
     val condition = weather.firstOrNull()?.description
@@ -14,11 +15,11 @@ fun WeatherResponse.toUiModel(): WeatherUiModel {
     return WeatherUiModel(
         city = name,
         country = sys.country,
-        temperatureCelsius = main.temp.toInt(),
+        temperatureCelsius = main.temp.roundToInt(),
         condition = condition,
         humidity = "${main.humidity}%",
-        wind = "${wind.speed} m/s",
-        feelsLikeCelsius = main.feelsLike.toInt(),
+        wind = "${(wind.speed * 3.6).roundToInt()} km/h",
+        feelsLikeCelsius = main.feelsLike.roundToInt(),
         pressure = "${main.pressure} hPa",
         uvIndex = "Not available",
         sunrise = formatUnixTime(sys.sunrise),
@@ -26,7 +27,11 @@ fun WeatherResponse.toUiModel(): WeatherUiModel {
     )
 }
 
-private fun formatUnixTime(value: Long): String {
-    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-    return formatter.format(Date(value * 1000))
+private fun formatUnixTime(timestamp: Long): String {
+    return try {
+        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        formatter.format(Date(timestamp * 1000))
+    } catch (e: Exception) {
+        "--:--"
+    }
 }

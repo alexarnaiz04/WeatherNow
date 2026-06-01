@@ -4,8 +4,8 @@ import com.example.weathernow.data.local.HistoryEntity
 import com.example.weathernow.data.local.WeatherLocationEntity
 import com.example.weathernow.ui.navigation.WeatherUiModel
 
-fun WeatherUiModel.toFavouriteEntity(): WeatherLocationEntity {
-    return WeatherLocationEntity(
+fun WeatherLocationEntity.toUiModel(): WeatherUiModel {
+    return WeatherUiModel(
         city = city,
         country = country,
         temperatureCelsius = temperatureCelsius,
@@ -20,8 +20,24 @@ fun WeatherUiModel.toFavouriteEntity(): WeatherLocationEntity {
     )
 }
 
-fun WeatherLocationEntity.toUiModel(): WeatherUiModel {
+fun HistoryEntity.toUiModel(): WeatherUiModel {
     return WeatherUiModel(
+        city = city,
+        country = country,
+        temperatureCelsius = temperatureCelsius,
+        condition = condition,
+        humidity = humidity,
+        wind = wind,
+        feelsLikeCelsius = feelsLikeCelsius,
+        pressure = pressure,
+        uvIndex = uvIndex,
+        sunrise = sunrise,
+        sunset = sunset
+    )
+}
+
+fun WeatherUiModel.toFavouriteEntity(): WeatherLocationEntity {
+    return WeatherLocationEntity(
         city = city,
         country = country,
         temperatureCelsius = temperatureCelsius,
@@ -50,21 +66,5 @@ fun WeatherUiModel.toHistoryEntity(): HistoryEntity {
         sunrise = sunrise,
         sunset = sunset,
         searchedAt = System.currentTimeMillis()
-    )
-}
-
-fun HistoryEntity.toUiModel(): WeatherUiModel {
-    return WeatherUiModel(
-        city = city,
-        country = country,
-        temperatureCelsius = temperatureCelsius,
-        condition = condition,
-        humidity = humidity,
-        wind = wind,
-        feelsLikeCelsius = feelsLikeCelsius,
-        pressure = pressure,
-        uvIndex = uvIndex,
-        sunrise = sunrise,
-        sunset = sunset
     )
 }

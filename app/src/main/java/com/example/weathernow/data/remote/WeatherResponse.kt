@@ -18,8 +18,7 @@ data class SysResponse(
 
 data class MainResponse(
     val temp: Double,
-    @SerializedName("feels_like")
-    val feelsLike: Double,
+    @SerializedName("feels_like") val feelsLike: Double,
     val humidity: Int,
     val pressure: Int
 )
